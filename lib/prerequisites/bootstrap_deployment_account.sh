@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 set -e
-alias cdk=/Users/baotran/.npm-global/bin/cdk
+
 if aws sts get-caller-identity > /dev/null; then
     export CDK_NEW_BOOTSTRAP=1
     export IS_BOOTSTRAP=1

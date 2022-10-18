@@ -59,7 +59,7 @@ class PipelineStack(cdk.Stack):
             build_image= CodeBuild.LinuxBuildImage.STANDARD_5_0,
             privileged = False
         )
-        
+
         code_build_opt = Pipelines.CodeBuildOptions(
             build_environment=code_build_env,
             role_policy=[
@@ -133,7 +133,7 @@ class PipelineStack(cdk.Stack):
                     trigger=CodePipelineActions.GitHubTrigger.POLL,
                 ),
                 commands=["npm install -g aws-cdk",
-                            "python -m pip install -r requirements.txt", 
+                            "python -m pip install -r requirements.txt",
                             "cdk synth"],
             ),
             cross_account_keys=True

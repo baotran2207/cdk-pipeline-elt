@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 set -e
-alias cdk=/Users/baotran/.npm-global/bin/cdk
+
 if [ -z $1 ] ; then
     echo "You must provide the Deployment AWS Account Id"
     exit 1

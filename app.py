@@ -38,23 +38,23 @@ else:
     }
     logical_id_prefix = get_logical_id_prefix()
 
-    if os.environ.get('ENV', DEV) == DEV:
-        target_environment = DEV
-        dev_account = raw_mappings[DEV][ACCOUNT_ID]
-        dev_region = raw_mappings[DEV][REGION]
-        dev_aws_env = {
-            'account': dev_account,
-            'region': dev_region,
-        }
-        dev_pipeline_stack = PipelineStack(
-            app,
-            f'{target_environment}{logical_id_prefix}InfrastructurePipeline',
-            target_environment=DEV,
-            target_branch='main',
-            target_aws_env=dev_aws_env,
-            env=deployment_aws_env,
-        )
-        tag(dev_pipeline_stack, DEPLOYMENT)
+    # if os.environ.get('ENV', DEV) == DEV:
+    #     target_environment = DEV
+    #     dev_account = raw_mappings[DEV][ACCOUNT_ID]
+    #     dev_region = raw_mappings[DEV][REGION]
+    #     dev_aws_env = {
+    #         'account': dev_account,
+    #         'region': dev_region,
+    #     }
+    #     dev_pipeline_stack = PipelineStack(
+    #         app,
+    #         f'{target_environment}{logical_id_prefix}InfrastructurePipeline',
+    #         target_environment=DEV,
+    #         target_branch='main',
+    #         target_aws_env=dev_aws_env,
+    #         env=deployment_aws_env,
+    #     )
+    #     tag(dev_pipeline_stack, DEPLOYMENT)
 
     if os.environ.get('ENV', TEST) == TEST:
         target_environment = TEST
@@ -74,22 +74,22 @@ else:
         )
         tag(test_pipeline_stack, DEPLOYMENT)
 
-    if os.environ.get('ENV', PROD) == PROD:
-        target_environment = PROD
-        prod_account = raw_mappings[PROD][ACCOUNT_ID]
-        prod_region = raw_mappings[PROD][REGION]
-        prod_aws_env = {
-            'account': prod_account,
-            'region': prod_region,
-        }
-        prod_pipeline_stack = PipelineStack(
-            app,
-            f'{target_environment}{logical_id_prefix}InfrastructurePipeline',
-            target_environment=PROD,
-            target_branch='prod',
-            target_aws_env=prod_aws_env,
-            env=deployment_aws_env,
-        )
-        tag(prod_pipeline_stack, DEPLOYMENT)
+    # if os.environ.get('ENV', PROD) == PROD:
+    #     target_environment = PROD
+    #     prod_account = raw_mappings[PROD][ACCOUNT_ID]
+    #     prod_region = raw_mappings[PROD][REGION]
+    #     prod_aws_env = {
+    #         'account': prod_account,
+    #         'region': prod_region,
+    #     }
+    #     prod_pipeline_stack = PipelineStack(
+    #         app,
+    #         f'{target_environment}{logical_id_prefix}InfrastructurePipeline',
+    #         target_environment=PROD,
+    #         target_branch='prod',
+    #         target_aws_env=prod_aws_env,
+    #         env=deployment_aws_env,
+    #     )
+    #     tag(prod_pipeline_stack, DEPLOYMENT)
 
 app.synth()
