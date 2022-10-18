@@ -13,6 +13,7 @@ from lib.configuration import (
 )
 from lib.tagging import tag
 from lib.empty_stack import EmptyStack
+
 app = cdk.App()
 
 raw_mappings = get_all_configurations()
