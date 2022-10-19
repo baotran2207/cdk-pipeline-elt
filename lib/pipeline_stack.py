@@ -57,7 +57,8 @@ class PipelineStack(cdk.Stack):
 
         code_build_env = CodeBuild.BuildEnvironment(
             build_image= CodeBuild.LinuxBuildImage.STANDARD_5_0,
-            privileged = False
+            compute_type=CodeBuild.ComputeType.SMALL,
+            privileged = False,
         )
 
         code_build_opt = Pipelines.CodeBuildOptions(
