@@ -38,7 +38,7 @@ class DynamoDbStack(cdk.Stack):
             billing_mode=dynamodb.BillingMode.PROVISIONED,
             encryption=dynamodb.TableEncryption.DEFAULT,
             point_in_time_recovery=False,
-            read_capacity=2,
+            read_capacity=1,
             removal_policy=self.removal_policy,
-            write_capacity=2,
+            write_capacity=1,
         )
