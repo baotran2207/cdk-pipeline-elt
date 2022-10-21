@@ -1,6 +1,6 @@
 # Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-
+from pprint import pprint
 import re
 
 # Environments (targeted at accounts)
@@ -20,12 +20,12 @@ REGION = 'region'
 LOGICAL_ID_PREFIX = 'logical_id_prefix'
 RESOURCE_NAME_PREFIX = 'resource_name_prefix'
 VPC_CIDR = 'vpc_cidr'
-
 # Secrets Manager Inputs
 GITHUB_TOKEN = 'github_token'
-
+SECRET_FILE_PATH = '/etlpineline/prod.json'
 # Used in Automated Outputs
 VPC_ID = 'vpc_id'
+VPC_MAX_AZ = 3
 AVAILABILITY_ZONE_1 = 'availability_zone_1'
 AVAILABILITY_ZONE_2 = 'availability_zone_2'
 AVAILABILITY_ZONE_3 = 'availability_zone_3'
@@ -47,6 +47,11 @@ GLUE_CONNECTION_AVAILABILITY_ZONE = 'glue_connection_availability_zone'
 GLUE_CONNECTION_SUBNET = 'glue_connection_subnet'
 
 
+# SECRET_FILE_PATH = os.path.join(
+#     CURDIR,"assets", "ssm_parameter_store", "prod.json"
+# )
+
+
 def get_local_configuration(environment: str) -> dict:
     """
     Provides manually configured variables that are validated for quality and safety.
@@ -57,32 +62,32 @@ def get_local_configuration(environment: str) -> dict:
     """
     local_mapping = {
         DEPLOYMENT: {
-            ACCOUNT_ID: '',
-            REGION: 'us-east-2',
-            GITHUB_REPOSITORY_OWNER_NAME: '',
-            GITHUB_REPOSITORY_NAME: '',
+            ACCOUNT_ID: '730353997858',
+            REGION: 'ap-southeast-1',
+            GITHUB_REPOSITORY_OWNER_NAME: 'baotran2207',
+            GITHUB_REPOSITORY_NAME: 'cdk-pipeline-elt',
             # This is used in the Logical Id of CloudFormation resources.
             # We recommend Capital case for consistency.
             # Example: DataLakeCdkBlog
-            LOGICAL_ID_PREFIX: '',
+            LOGICAL_ID_PREFIX: 'BaotranId',
             # Important: This is used in resources that must be **globally** unique!
             # Resource names may only contain Alphanumeric and hyphens and cannot contain trailing hyphens.
             # Example: unique-identifier-data-lake
-            RESOURCE_NAME_PREFIX: '',
+            RESOURCE_NAME_PREFIX: 'baotran-stack',
         },
         DEV: {
-            ACCOUNT_ID: '',
-            REGION: 'us-east-2',
+            ACCOUNT_ID: '730353997858',
+            REGION: 'ap-east-1',
             VPC_CIDR: '10.20.0.0/24'
         },
         TEST: {
-            ACCOUNT_ID: '',
-            REGION: 'us-east-2',
+            ACCOUNT_ID: '964372540223',
+            REGION: 'ap-east-1',
             VPC_CIDR: '10.10.0.0/24'
         },
         PROD: {
-            ACCOUNT_ID: '',
-            REGION: 'us-east-2',
+            ACCOUNT_ID: '900995756615',
+            REGION: 'ap-east-1',
             VPC_CIDR: '10.0.0.0/24'
         }
     }

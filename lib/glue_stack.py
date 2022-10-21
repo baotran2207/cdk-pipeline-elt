@@ -1,7 +1,8 @@
 # Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import aws_cdk.core as cdk
+import aws_cdk as cdk
+from constructs import Construct
 import aws_cdk.aws_s3 as s3
 import aws_cdk.aws_ec2 as ec2
 import aws_cdk.aws_glue as glue
@@ -19,7 +20,7 @@ from .configuration import (
 class GlueStack(cdk.Stack):
     def __init__(
         self,
-        scope: cdk.Construct,
+        scope: Construct,
         construct_id: str,
         target_environment: str,
         **kwargs
@@ -28,7 +29,7 @@ class GlueStack(cdk.Stack):
         CloudFormation stack to create Glue Jobs, Connections,
         Script Bucket, Temporary Bucket, and an IAM Role for permissions.
 
-        @param scope cdk.Construct: Parent of this stack, usually an App or a Stage, but could be any construct.
+        @param scope Construct: Parent of this stack, usually an App or a Stage, but could be any construct.
         @param construct_id str:
             The construct ID of this stack. If stackName is not explicitly defined,
             this id (and any parent IDs) will be used to determine the physical ID of the stack.
@@ -97,26 +98,33 @@ class GlueStack(cdk.Stack):
             s3_kms_key,
         )
 
-        job_connection = glue.Connection(
+        job_connection = glue.CfnConnection(
             self,
             f'{target_environment}{logical_id_prefix}RawToConformedWorkflowConnection',
-            type=glue.ConnectionType.NETWORK,
-            connection_name=f'{target_environment.lower()}-{resource_name_prefix}-raw-to-conformed-connection',
-            security_groups=[shared_security_group],
-            subnet=subnet
+            catalog_id=self.account,
+            connection_input=glue.CfnConnection.ConnectionInputProperty(
+                connection_type="NETWORK",
+                name=f'{target_environment.lower()}-{resource_name_prefix}-raw-to-conformed-connection',
+                physical_connection_requirements=glue.CfnConnection.PhysicalConnectionRequirementsProperty(
+                    availability_zone=subnet.availability_zone,
+                    security_group_id_list=[shared_security_group.security_group_id],
+                    subnet_id=subnet.subnet_id
+                )
+            )
         )
 
         self.raw_to_conformed_job = glue.CfnJob(
             self,
-            f'{target_environment}{logical_id_prefix}RawToConformedJob',
-            name=f'{target_environment.lower()}-{resource_name_prefix}-raw-to-conformed-job',
+            # f'{target_environment}{logical_id_prefix}RawToConformedJob',
+            f'{target_environment}{logical_id_prefix}BronzeLayer',
+            name=f'{target_environment.lower()}-{resource_name_prefix}-bronze-datasource-alpha',
             command=glue.CfnJob.JobCommandProperty(
                 name='glueetl',
                 python_version='3',
                 script_location=f's3://{glue_scripts_bucket.bucket_name}/etl/etl_raw_to_conformed.py'
             ),
             connections=glue.CfnJob.ConnectionsListProperty(
-                connections=[job_connection.connection_name],
+                connections=[job_connection.connection_input.name],
             ),
             default_arguments={
                 '--enable-glue-datacatalog': '""',
@@ -126,7 +134,7 @@ class GlueStack(cdk.Stack):
                 '--TempDir': f's3://{glue_scripts_temp_bucket.bucket_name}/etl/raw-to-conformed',
             },
             execution_property=glue.CfnJob.ExecutionPropertyProperty(
-                max_concurrent_runs=1,
+                max_concurrent_runs=5,
             ),
             glue_version='2.0',
             max_retries=0,
@@ -137,15 +145,16 @@ class GlueStack(cdk.Stack):
 
         self.conformed_to_purpose_built_job = glue.CfnJob(
             self,
-            f'{target_environment}{logical_id_prefix}ConformedToPurposeBuiltJob',
-            name=f'{target_environment.lower()}-{resource_name_prefix}-conformed-to-purpose-built-job',
+            # f'{target_environment}{logical_id_prefix}ConformedToPurposeBuiltJob',
+            f'{target_environment}{logical_id_prefix}SilverRawLayer',
+            name=f'{target_environment.lower()}-{resource_name_prefix}-silverraw-datasource-alpha',
             command=glue.CfnJob.JobCommandProperty(
                 name='glueetl',
                 python_version='3',
                 script_location=f's3://{glue_scripts_bucket.bucket_name}/etl/etl_conformed_to_purposebuilt.py'
             ),
             connections=glue.CfnJob.ConnectionsListProperty(
-                connections=[job_connection.connection_name],
+                connections=[job_connection.connection_input.name],
             ),
             default_arguments={
                 '--enable-glue-datacatalog': '""',
@@ -157,7 +166,7 @@ class GlueStack(cdk.Stack):
                 '--TempDir': f's3://{glue_scripts_temp_bucket.bucket_name}/etl/conformed-to-purpose-built'
             },
             execution_property=glue.CfnJob.ExecutionPropertyProperty(
-                max_concurrent_runs=1,
+                max_concurrent_runs=5,
             ),
             glue_version='2.0',
             max_retries=0,
@@ -267,7 +276,8 @@ class GlueStack(cdk.Stack):
             f'{target_environment}{logical_id_prefix}RawGlueRole',
             role_name=f'{target_environment.lower()}-{resource_name_prefix}-raw-glue-role',
             assumed_by=iam.ServicePrincipal('glue.amazonaws.com'),
-            inline_policies=[
+            inline_policies={
+                'S3BucketReadAccess':
                 iam.PolicyDocument(statements=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
@@ -282,6 +292,7 @@ class GlueStack(cdk.Stack):
                         ]
                     )
                 ]),
+                'S3BucketWriteAccess':
                 iam.PolicyDocument(statements=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
@@ -296,6 +307,7 @@ class GlueStack(cdk.Stack):
                         ]
                     )
                 ]),
+                'S3BucketListAll':
                 iam.PolicyDocument(statements=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
@@ -308,6 +320,7 @@ class GlueStack(cdk.Stack):
                     )
                 ]),
                 # NOTE: This is required due to bucket level encryption on S3 Buckets
+                'KmsAccess':
                 iam.PolicyDocument(statements=[
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
@@ -319,7 +332,7 @@ class GlueStack(cdk.Stack):
                         ]
                     )
                 ]),
-            ],
+            },
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSGlueServiceRole'),
             ]
