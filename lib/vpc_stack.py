@@ -7,7 +7,8 @@ import aws_cdk.aws_ec2 as ec2
 from .configuration import (
     AVAILABILITY_ZONE_1, AVAILABILITY_ZONE_2, AVAILABILITY_ZONE_3, ROUTE_TABLE_1, ROUTE_TABLE_2, ROUTE_TABLE_3,
     SHARED_SECURITY_GROUP_ID, SUBNET_ID_1, SUBNET_ID_2, SUBNET_ID_3, VPC_CIDR, VPC_ID,
-    get_environment_configuration, get_logical_id_prefix
+    get_environment_configuration, get_logical_id_prefix,
+    VPC_MAX_AZ,
 )
 
 
@@ -33,7 +34,7 @@ class VpcStack(cdk.Stack):
             self,
             f'{logical_id_prefix}Vpc',
             cidr=vpc_cidr,
-            max_azs=3,
+            max_azs=VPC_MAX_AZ,
         )
         shared_security_group_ingress = ec2.SecurityGroup(
             self,
