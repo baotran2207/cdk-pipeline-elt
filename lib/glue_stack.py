@@ -115,8 +115,9 @@ class GlueStack(cdk.Stack):
 
         self.raw_to_conformed_job = glue.CfnJob(
             self,
-            f'{target_environment}{logical_id_prefix}RawToConformedJob',
-            name=f'{target_environment.lower()}-{resource_name_prefix}-raw-to-conformed-job',
+            # f'{target_environment}{logical_id_prefix}RawToConformedJob',
+            f'{target_environment}{logical_id_prefix}BronzeLayer',
+            name=f'{target_environment.lower()}-{resource_name_prefix}-bronze-datasource-alpha',
             command=glue.CfnJob.JobCommandProperty(
                 name='glueetl',
                 python_version='3',
@@ -144,8 +145,9 @@ class GlueStack(cdk.Stack):
 
         self.conformed_to_purpose_built_job = glue.CfnJob(
             self,
-            f'{target_environment}{logical_id_prefix}ConformedToPurposeBuiltJob',
-            name=f'{target_environment.lower()}-{resource_name_prefix}-conformed-to-purpose-built-job',
+            # f'{target_environment}{logical_id_prefix}ConformedToPurposeBuiltJob',
+            f'{target_environment}{logical_id_prefix}SilverRawLayer',
+            name=f'{target_environment.lower()}-{resource_name_prefix}-silverraw-datasource-alpha',
             command=glue.CfnJob.JobCommandProperty(
                 name='glueetl',
                 python_version='3',

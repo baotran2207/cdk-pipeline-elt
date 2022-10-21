@@ -17,10 +17,10 @@ import aws_cdk.aws_stepfunctions_tasks as stepfunctions_tasks
 
 
 from .configuration import (
-    AVAILABILITY_ZONE_1, AVAILABILITY_ZONE_2, AVAILABILITY_ZONE_3, 
+    AVAILABILITY_ZONE_1, AVAILABILITY_ZONE_2, AVAILABILITY_ZONE_3,
     ROUTE_TABLE_1, ROUTE_TABLE_2, ROUTE_TABLE_3,
     S3_RAW_BUCKET, SUBNET_ID_1, SUBNET_ID_2, SUBNET_ID_3, SHARED_SECURITY_GROUP_ID, VPC_ID,
-    get_environment_configuration, get_logical_id_prefix, get_resource_name_prefix, 
+    get_environment_configuration, get_logical_id_prefix, get_resource_name_prefix,
     S3_CONFORMED_BUCKET
 )
 
@@ -94,7 +94,7 @@ class StepFunctionsStack(cdk.Stack):
             },
             security_groups=[shared_security_group],
             vpc=vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
         )
         status_function.add_to_role_policy(
             iam.PolicyStatement(
@@ -219,7 +219,7 @@ class StepFunctionsStack(cdk.Stack):
             },
             security_groups=[shared_security_group],
             vpc=vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
         )
         trigger_function.add_to_role_policy(
             iam.PolicyStatement(

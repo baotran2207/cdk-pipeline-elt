@@ -10,8 +10,8 @@ from .tagging import tag
 from .configuration import (
     get_logical_id_prefix,
 )
-
-
+from .s3_bucket_zones_export_stack import S3BucketZonesStack
+from .vpc_stack import VpcStack
 class PipelineDeployStage(cdk.Stage):
     def __init__(self, scope: Construct, construct_id: str, target_environment: str, deployment_account_id: str, env=None, **kwargs):
         """
@@ -27,6 +27,21 @@ class PipelineDeployStage(cdk.Stage):
         super().__init__(scope, construct_id, **kwargs)
         logical_id_prefix = get_logical_id_prefix()
 
+        vpc_stack = VpcStack(
+            self,
+            f'{target_environment}{logical_id_prefix}InfrastructureVpc',
+            target_environment=target_environment,
+            env=env,
+            **kwargs,
+        )
+        bucket_stack = S3BucketZonesStack(
+            self,
+            f'{target_environment}{logical_id_prefix}InfrastructureS3BucketZones',
+            target_environment=target_environment,
+            deployment_account_id=deployment_account_id,
+            env=env,
+            **kwargs,
+        )
         dynamodb_stack = DynamoDbStack(
             self,
             f'{target_environment}{logical_id_prefix}EtlDynamoDb',
@@ -53,7 +68,8 @@ class PipelineDeployStage(cdk.Stage):
             job_audit_table=dynamodb_stack.job_audit_table,
             **kwargs,
         )
-
+        tag(vpc_stack, target_environment)
+        tag(bucket_stack, target_environment)
         tag(step_function_stack, target_environment)
         tag(dynamodb_stack, target_environment)
         tag(glue_stack, target_environment)
