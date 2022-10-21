@@ -1,6 +1,5 @@
 # Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-from dotenv import load_dotenv
 from pprint import pprint
 import re
 
@@ -64,7 +63,7 @@ def get_local_configuration(environment: str) -> dict:
     local_mapping = {
         DEPLOYMENT: {
             ACCOUNT_ID: '730353997858',
-            REGION: 'ap-east-1',
+            REGION: 'ap-southeast-1',
             GITHUB_REPOSITORY_OWNER_NAME: 'baotran2207',
             GITHUB_REPOSITORY_NAME: 'cdk-pipeline-elt',
             # This is used in the Logical Id of CloudFormation resources.
