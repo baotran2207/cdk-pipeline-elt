@@ -57,6 +57,9 @@ class PipelineDeployStage(cdk.Stage):
             env=env,
             **kwargs,
         )
+        glue_stack.add_dependency(bucket_stack)
+        glue_stack.add_dependency(vpc_stack)
+
 
         step_function_stack = StepFunctionsStack(
             self,
@@ -68,6 +71,10 @@ class PipelineDeployStage(cdk.Stage):
             job_audit_table=dynamodb_stack.job_audit_table,
             **kwargs,
         )
+
+        step_function_stack.add_dependency(bucket_stack)
+        step_function_stack.add_dependency(vpc_stack)
+
         tag(vpc_stack, target_environment)
         tag(bucket_stack, target_environment)
         tag(step_function_stack, target_environment)
