@@ -5,5 +5,4 @@ This repo is a fork from [CDK Pipelines for Data Lake ETL Deployment](https://gi
 - cdk version 2 will be the main version and main branch
 
 
-
 # Updating
