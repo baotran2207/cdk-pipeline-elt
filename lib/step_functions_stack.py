@@ -51,6 +51,7 @@ class StepFunctionsStack(cdk.Stack):
         logical_id_prefix = get_logical_id_prefix()
         resource_name_prefix = get_resource_name_prefix()
 
+        # NETWORK definition
         vpc_id = cdk.Fn.import_value(self.mappings[VPC_ID])
         shared_security_group_output = cdk.Fn.import_value(self.mappings[SHARED_SECURITY_GROUP_ID])
         availability_zones_output_1 = cdk.Fn.import_value(self.mappings[AVAILABILITY_ZONE_1])
@@ -78,9 +79,12 @@ class StepFunctionsStack(cdk.Stack):
             'ImportedSecurityGroup',
             shared_security_group_output
         )
+
+        # S3 bucket definition : imported raw bucket
         raw_bucket_name = cdk.Fn.import_value(self.mappings[S3_RAW_BUCKET])
         raw_bucket = s3.Bucket.from_bucket_name(self, id='ImportedRawBucket', bucket_name=raw_bucket_name)
         notification_topic = sns.Topic(self, f'{target_environment}{logical_id_prefix}EtlFailedTopic')
+
 
         status_function = _lambda.Function(
             self,
@@ -197,7 +201,7 @@ class StepFunctionsStack(cdk.Stack):
         machine_definition = glue_raw_task.next(
             glue_conformed_task.next(success_function_task)
         )
-
+        # Init StateMachine
         machine = stepfunctions.StateMachine(
             self,
             f'{target_environment}{logical_id_prefix}EtlStateMachine',
@@ -205,6 +209,7 @@ class StepFunctionsStack(cdk.Stack):
             definition=machine_definition,
         )
 
+        ## lambda trigger function from raw
         trigger_function = _lambda.Function(
             self,
             f'{target_environment}{logical_id_prefix}EtlTrigger',
