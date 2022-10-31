@@ -37,7 +37,7 @@ class S3BucketZonesStack(cdk.Stack):
         logical_id_prefix = get_logical_id_prefix()
         resource_name_prefix = get_resource_name_prefix()
         self.removal_policy = cdk.RemovalPolicy.DESTROY
-        if (target_environment == PROD or target_environment == TEST):
+        if (target_environment == PROD):
             self.removal_policy = cdk.RemovalPolicy.RETAIN
 
         s3_kms_key = self.create_kms_key(
@@ -51,22 +51,22 @@ class S3BucketZonesStack(cdk.Stack):
             s3_kms_key,
         )
         raw_bucket = self.create_data_lake_zone_bucket(
-            f'{target_environment}{logical_id_prefix}RawBucket',
-            f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-{self.region}-raw',
-            access_logs_bucket,
-            s3_kms_key,
+            logical_id=f'{target_environment}{logical_id_prefix}RawBucketBronze',
+            bucket_name=f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-{self.region}-raw-bronze',
+            access_logs_bucket=access_logs_bucket,
+            s3_kms_key=s3_kms_key,
         )
         conformed_bucket = self.create_data_lake_zone_bucket(
-            f'{target_environment}{logical_id_prefix}ConformedBucket',
-            f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-{self.region}-conformed',
-            access_logs_bucket,
-            s3_kms_key,
+            logical_id=f'{target_environment}{logical_id_prefix}ConformedBucket',
+            bucket_name=f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-{self.region}-conformed-silver',
+            access_logs_bucket=access_logs_bucket,
+            s3_kms_key=s3_kms_key,
         )
         purpose_built_bucket = self.create_data_lake_zone_bucket(
-            f'{target_environment}{logical_id_prefix}PurposeBuiltBucket',
-            f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-{self.region}-purpose-built',
-            access_logs_bucket,
-            s3_kms_key,
+            logical_id=f'{target_environment}{logical_id_prefix}PurposeBuiltBucket',
+            bucket_name=f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-{self.region}-purpose-built-gold',
+            access_logs_bucket=access_logs_bucket,
+            s3_kms_key=s3_kms_key,
         )
 
         # Stack Outputs that are programmatically synchronized
@@ -186,6 +186,7 @@ class S3BucketZonesStack(cdk.Stack):
             object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
             server_access_logs_bucket=access_logs_bucket,
             server_access_logs_prefix=bucket_name,
+            # auto_delete_objects=False if self.target_environment == PROD else True,
         )
         policy_document_statements = [
             iam.PolicyStatement(
@@ -240,7 +241,8 @@ class S3BucketZonesStack(cdk.Stack):
             encryption=s3.BucketEncryption.KMS,
             encryption_key=s3_kms_key,
             public_read_access=False,
-            removal_policy=cdk.RemovalPolicy.RETAIN,
+            removal_policy=cdk.RemovalPolicy.RETAIN if self.target_environment == PROD else cdk.RemovalPolicy.DESTROY,
             versioned=True,
             object_ownership=s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
+            # auto_delete_objects=False if self.target_environment == PROD else True,
         )

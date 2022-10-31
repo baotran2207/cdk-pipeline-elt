@@ -11,7 +11,7 @@ import aws_cdk.aws_kms as kms
 import aws_cdk.aws_s3_deployment as s3_deployment
 
 from .configuration import (
-    AVAILABILITY_ZONE_1, SUBNET_ID_1,
+    AVAILABILITY_ZONE_1, PROD, SUBNET_ID_1,
     S3_ACCESS_LOG_BUCKET, S3_KMS_KEY, S3_CONFORMED_BUCKET, S3_PURPOSE_BUILT_BUCKET, SHARED_SECURITY_GROUP_ID,
     get_environment_configuration, get_logical_id_prefix, get_resource_name_prefix
 )
@@ -41,16 +41,22 @@ class GlueStack(cdk.Stack):
         self.mappings = get_environment_configuration(target_environment)
         logical_id_prefix = get_logical_id_prefix()
         resource_name_prefix = get_resource_name_prefix()
-
+        # import cfn
         existing_access_logs_bucket_name = cdk.Fn.import_value(self.mappings[S3_ACCESS_LOG_BUCKET])
+
         access_logs_bucket = s3.Bucket.from_bucket_attributes(
             self,
             'ImportedBucket',
             bucket_name=existing_access_logs_bucket_name
         )
+
         s3_kms_key_parameter = cdk.Fn.import_value(self.mappings[S3_KMS_KEY])
         s3_kms_key = kms.Key.from_key_arn(self, 'ImportedKmsKey', s3_kms_key_parameter)
+
         shared_security_group_parameter = cdk.Fn.import_value(self.mappings[SHARED_SECURITY_GROUP_ID])
+
+
+        # init connection
         glue_connection_subnet = cdk.Fn.import_value(self.mappings[SUBNET_ID_1])
         glue_connection_availability_zone = cdk.Fn.import_value(self.mappings[AVAILABILITY_ZONE_1])
 
@@ -77,6 +83,9 @@ class GlueStack(cdk.Stack):
             subnet_id=glue_connection_subnet,
             availability_zone=glue_connection_availability_zone
         )
+
+
+        ## script bucket
         glue_scripts_bucket = self.glue_scripts_bucket(
             target_environment,
             logical_id_prefix,
@@ -192,7 +201,8 @@ class GlueStack(cdk.Stack):
         @param s3_kms_key kms.Key: The KMS Key to use for encryption of data at rest
         @param access_logs_bucket s3.Bucket: The access logs target for this bucket
         """
-        bucket_name = f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-etl-scripts'
+        bucket_name = f'{target_environment.lower()}-{resource_name_prefix}-{self.account}-etl-coderepo'
+
         bucket = s3.Bucket(
             self,
             f'{target_environment}{logical_id_prefix}RawGlueScriptsBucket',
@@ -204,10 +214,11 @@ class GlueStack(cdk.Stack):
             encryption_key=s3_kms_key,
             public_read_access=False,
             removal_policy=cdk.RemovalPolicy.DESTROY,
-            versioned=True,
+            versioned=False if target_environment == PROD else True,
             object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
             server_access_logs_bucket=access_logs_bucket,
             server_access_logs_prefix=bucket_name,
+            # auto_delete_objects=False if target_environment == PROD else True,
         )
         # Dynamically upload resources to the script target
         s3_deployment.BucketDeployment(
@@ -250,6 +261,7 @@ class GlueStack(cdk.Stack):
             object_ownership=s3.ObjectOwnership.OBJECT_WRITER,
             server_access_logs_bucket=access_logs_bucket,
             server_access_logs_prefix=bucket_name,
+            # auto_delete_objects=False if target_environment == PROD else True,
         )
 
         return bucket
